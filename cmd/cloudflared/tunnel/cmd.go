@@ -14,7 +14,6 @@ import (
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/config"
 	"github.com/cloudflare/cloudflared/connection"
-	"github.com/cloudflare/cloudflared/hello"
 	"github.com/cloudflare/cloudflared/metrics"
 	"github.com/cloudflare/cloudflared/origin"
 	"github.com/cloudflare/cloudflared/signal"
@@ -202,22 +201,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 
 	if c.IsSet("use-declarative-tunnels") {
 		return startDeclarativeTunnel(ctx, c, cloudflaredID, buildInfo, &listeners)
-	}
-
-	if c.IsSet("hello-world") {
-		logger.Infof("hello-world set")
-		helloListener, err := hello.CreateTLSListener("127.0.0.1:")
-		if err != nil {
-			logger.WithError(err).Error("Cannot start Hello World Server")
-			return errors.Wrap(err, "Cannot start Hello World Server")
-		}
-		defer helloListener.Close()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			hello.StartHelloWorldServer(logger, helloListener, shutdownC)
-		}()
-		c.Set("url", "https://"+helloListener.Addr().String())
 	}
 
 	if host := hostnameFromURI(c.String("url")); host != "" {
@@ -603,20 +586,6 @@ func tunnelFlags(shouldHide bool) []cli.Flag {
 			Usage:   "Maximum number of retries for connection/protocol errors.",
 			EnvVars: []string{"TUNNEL_RETRIES"},
 			Hidden:  shouldHide,
-		}),
-		altsrc.NewBoolFlag(&cli.BoolFlag{
-			Name:    "hello-world",
-			Value:   false,
-			Usage:   "Run Hello World Server",
-			EnvVars: []string{"TUNNEL_HELLO_WORLD"},
-			Hidden:  shouldHide,
-		}),
-		altsrc.NewBoolFlag(&cli.BoolFlag{
-			Name:    "ssh-server",
-			Value:   false,
-			Usage:   "Run an SSH Server",
-			EnvVars: []string{"TUNNEL_SSH_SERVER"},
-			Hidden:  true, // TODO: remove when feature is complete
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    "pidfile",

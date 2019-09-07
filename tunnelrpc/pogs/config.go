@@ -3,7 +3,6 @@ package pogs
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -284,28 +283,7 @@ func (_ *WebSocketOriginConfig) jsonType() string {
 type HelloWorldOriginConfig struct{}
 
 func (_ *HelloWorldOriginConfig) Service() (originservice.OriginService, error) {
-	helloCert, err := tlsconfig.GetHelloCertificateX509()
-	if err != nil {
-		return nil, errors.Wrap(err, "Cannot get Hello World server certificate")
-	}
-	rootCAs := x509.NewCertPool()
-	rootCAs.AddCert(helloCert)
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		TLSClientConfig: &tls.Config{
-			RootCAs: rootCAs,
-		},
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-	return originservice.NewHelloWorldService(transport)
+	return nil, fmt.Errorf("not implemented error")
 }
 
 func (_ *HelloWorldOriginConfig) jsonType() string {

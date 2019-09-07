@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/cloudflare/cloudflared/h2mux"
-	"github.com/cloudflare/cloudflared/hello"
 	"github.com/cloudflare/cloudflared/log"
 	"github.com/cloudflare/cloudflared/websocket"
 
@@ -138,67 +137,6 @@ func (wsc *WebsocketService) Summary() string {
 
 func (wsc *WebsocketService) Shutdown() {
 	close(wsc.shutdownC)
-}
-
-// HelloWorldService talks to the hello world example origin
-type HelloWorldService struct {
-	client    http.RoundTripper
-	listener  net.Listener
-	originURL *url.URL
-	shutdownC chan struct{}
-}
-
-func NewHelloWorldService(transport http.RoundTripper) (OriginService, error) {
-	listener, err := hello.CreateTLSListener("127.0.0.1:")
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot start Hello World Server")
-	}
-	shutdownC := make(chan struct{})
-	go func() {
-		hello.StartHelloWorldServer(log.CreateLogger(), listener, shutdownC)
-	}()
-	return &HelloWorldService{
-		client:   transport,
-		listener: listener,
-		originURL: &url.URL{
-			Scheme: "https",
-			Host:   listener.Addr().String(),
-		},
-		shutdownC: shutdownC,
-	}, nil
-}
-
-func (hwc *HelloWorldService) Proxy(stream *h2mux.MuxedStream, req *http.Request) (*http.Response, error) {
-	// Request origin to keep connection alive to improve performance
-	req.Header.Set("Connection", "keep-alive")
-	resp, err := hwc.client.RoundTrip(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "error proxying request to Hello World origin")
-	}
-	defer resp.Body.Close()
-
-	err = stream.WriteHeaders(h1ResponseToH2Response(resp))
-	if err != nil {
-		return nil, errors.Wrap(err, "error writing response header to Hello World origin")
-	}
-
-	// Use CopyBuffer, because Copy only allocates a 32KiB buffer, and cross-stream
-	// compression generates dictionary on first write
-	io.CopyBuffer(stream, resp.Body, make([]byte, 512*1024))
-
-	return resp, nil
-}
-
-func (hwc *HelloWorldService) URL() *url.URL {
-	return hwc.originURL
-}
-
-func (hwc *HelloWorldService) Summary() string {
-	return fmt.Sprintf("Hello World service listening on %s", hwc.originURL)
-}
-
-func (hwc *HelloWorldService) Shutdown() {
-	hwc.listener.Close()
 }
 
 func isEventStream(resp *http.Response) bool {
