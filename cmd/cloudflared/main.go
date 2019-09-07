@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/access"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/tunnel"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
 	"github.com/cloudflare/cloudflared/log"
@@ -77,7 +76,6 @@ func main() {
 	app.Commands = commands(cli.ShowVersion)
 
 	tunnel.Init(Version, shutdownC, graceShutdownC) // we need this to support the tunnel sub command...
-	access.Init(shutdownC, graceShutdownC)
 	runApp(app, shutdownC, graceShutdownC)
 }
 
@@ -105,13 +103,11 @@ To determine if an update happened in a script, check for error code 64.`,
 		},
 	}
 	cmds = append(cmds, tunnel.Commands()...)
-	cmds = append(cmds, access.Commands()...)
 	return cmds
 }
 
 func flags() []cli.Flag {
-	flags := tunnel.Flags()
-	return append(flags, access.Flags()...)
+	return tunnel.Flags()
 }
 
 func isEmptyInvocation(c *cli.Context) bool {

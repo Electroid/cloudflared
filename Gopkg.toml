@@ -6,8 +6,6 @@
     name = "github.com/cloudflare/brotli-go"
     unused-packages = false
 
-
-
 [[constraint]]
   name = "github.com/facebookgo/grace"
   revision = "75cf19382434e82df4dd84953f566b8ad23d6e9e"
@@ -71,10 +69,6 @@
   revision = "d3b731e9255b72d4571a5aac125634cf1b6031dc"
 
 [[constraint]]
-  name = "github.com/coreos/go-oidc"
-  revision = "a93f71fdfe73d2c0f5413c0565eea0af6523a6df"
-
-[[constraint]]
   name = "golang.org/x/crypto"
   branch = "master"  # master required by github.com/miekg/dns
 
@@ -89,15 +83,3 @@
 [[constraint]]
   name = "github.com/mitchellh/mapstructure"
   version = "1.1.2"
-
-[[constraint]]
-  name = "github.com/gliderlabs/ssh"
-  version = "0.2.2"
-
-[[constraint]]
-  name = "github.com/creack/pty"
-  version = "1.1.7"
-
-[[constraint]]
-  name = "github.com/aws/aws-sdk-go"
-  version = "1.23.9"

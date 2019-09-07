@@ -7,13 +7,11 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"runtime"
 	"runtime/trace"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/cloudflare/cloudflared/awsuploader"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/config"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
@@ -23,8 +21,6 @@ import (
 	"github.com/cloudflare/cloudflared/metrics"
 	"github.com/cloudflare/cloudflared/origin"
 	"github.com/cloudflare/cloudflared/signal"
-	"github.com/cloudflare/cloudflared/sshlog"
-	"github.com/cloudflare/cloudflared/sshserver"
 	"github.com/cloudflare/cloudflared/supervisor"
 	"github.com/cloudflare/cloudflared/tlsconfig"
 	"github.com/cloudflare/cloudflared/tunneldns"
@@ -34,7 +30,6 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"github.com/facebookgo/grace/gracenet"
 	"github.com/getsentry/raven-go"
-	"github.com/gliderlabs/ssh"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
@@ -44,35 +39,6 @@ import (
 
 const (
 	sentryDSN = "https://56a9c9fa5c364ab28f34b14f35ea0f1b:3e8827f6f9f740738eb11138f7bebb68@sentry.io/189878"
-
-	sshLogFileDirectory = "/var/log/cloudflared/"
-
-	// sshPortFlag is the port on localhost the cloudflared ssh server will run on
-	sshPortFlag = "local-ssh-port"
-
-	// sshIdleTimeoutFlag defines the duration a SSH session can remain idle before being closed
-	sshIdleTimeoutFlag = "ssh-idle-timeout"
-
-	// sshMaxTimeoutFlag defines the max duration a SSH session can remain open for
-	sshMaxTimeoutFlag = "ssh-max-timeout"
-
-	// bucketNameFlag is the bucket name to use for the SSH log uploader
-	bucketNameFlag = "bucket-name"
-
-	// regionNameFlag is the AWS region name to use for the SSH log uploader
-	regionNameFlag = "region-name"
-
-	// secretIDFlag is the Secret id of SSH log uploader
-	secretIDFlag = "secret-id"
-
-	// accessKeyIDFlag is the Access key id of SSH log uploader
-	accessKeyIDFlag = "access-key-id"
-
-	// sessionTokenIDFlag is the Session token of SSH log uploader
-	sessionTokenIDFlag = "session-token"
-
-	// s3URLFlag is the S3 URL of SSH log uploader (e.g. don't use AWS s3 and use google storage bucket instead)
-	s3URLFlag = "s3-url-host"
 )
 
 var (
@@ -359,46 +325,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 			hello.StartHelloWorldServer(logger, helloListener, shutdownC)
 		}()
 		c.Set("url", "https://"+helloListener.Addr().String())
-	}
-
-	if c.IsSet("ssh-server") {
-		if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
-			logger.Errorf("--ssh-server is not supported on %s", runtime.GOOS)
-			return errors.New(fmt.Sprintf("--ssh-server is not supported on %s", runtime.GOOS))
-
-		}
-
-		logger.Infof("ssh-server set")
-
-		if c.IsSet(bucketNameFlag) && c.IsSet(regionNameFlag) && c.IsSet(accessKeyIDFlag) && c.IsSet(secretIDFlag) {
-			uploader, err := awsuploader.NewFileUploader(c.String(bucketNameFlag), c.String(regionNameFlag),
-				c.String(accessKeyIDFlag), c.String(secretIDFlag), c.String(sessionTokenIDFlag), c.String(s3URLFlag))
-			if err != nil {
-				logger.WithError(err).Error("Cannot create uploader for SSH Server")
-				return errors.Wrap(err, "Cannot create uploader for SSH Server")
-			}
-
-			os.Mkdir(sshLogFileDirectory, 0600)
-
-			uploadManager := awsuploader.NewDirectoryUploadManager(logger, uploader, sshLogFileDirectory, 30*time.Minute, shutdownC)
-			uploadManager.Start()
-		}
-
-		logManager := sshlog.New()
-		sshServerAddress := "127.0.0.1:" + c.String(sshPortFlag)
-		server, err := sshserver.New(logManager, logger, sshServerAddress, shutdownC, c.Duration(sshIdleTimeoutFlag), c.Duration(sshMaxTimeoutFlag))
-		if err != nil {
-			logger.WithError(err).Error("Cannot create new SSH Server")
-			return errors.Wrap(err, "Cannot create new SSH Server")
-		}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err = server.Start(); err != nil && err != ssh.ErrServerClosed {
-				logger.WithError(err).Error("SSH server error")
-			}
-		}()
-		c.Set("url", "ssh://"+sshServerAddress)
 	}
 
 	if host := hostnameFromURI(c.String("url")); host != "" {
@@ -960,61 +886,6 @@ func tunnelFlags(shouldHide bool) []cli.Flag {
 			Usage:   "Maximum wait time to set up a connection with the edge",
 			Value:   time.Second * 15,
 			EnvVars: []string{"DIAL_EDGE_TIMEOUT"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    sshPortFlag,
-			Usage:   "Localhost port that cloudflared SSH server will run on",
-			Value:   "22",
-			EnvVars: []string{"LOCAL_SSH_PORT"},
-			Hidden:  true,
-		}),
-		altsrc.NewDurationFlag(&cli.DurationFlag{
-			Name:    sshIdleTimeoutFlag,
-			Usage:   "Connection timeout after no activity",
-			EnvVars: []string{"SSH_IDLE_TIMEOUT"},
-			Hidden:  true,
-		}),
-		altsrc.NewDurationFlag(&cli.DurationFlag{
-			Name:    sshMaxTimeoutFlag,
-			Usage:   "Absolute connection timeout",
-			EnvVars: []string{"SSH_MAX_TIMEOUT"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    bucketNameFlag,
-			Usage:   "Bucket name of where to upload SSH logs",
-			EnvVars: []string{"BUCKET_ID"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    regionNameFlag,
-			Usage:   "Region name of where to upload SSH logs",
-			EnvVars: []string{"REGION_ID"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    accessKeyIDFlag,
-			Usage:   "Access Key ID of where to upload SSH logs",
-			EnvVars: []string{"ACCESS_CLIENT_ID"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    secretIDFlag,
-			Usage:   "Secret ID of where to upload SSH logs",
-			EnvVars: []string{"SECRET_ID"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    sessionTokenIDFlag,
-			Usage:   "Session Token to use in the configuration of SSH logs uploading",
-			EnvVars: []string{"SESSION_TOKEN_ID"},
-			Hidden:  true,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    s3URLFlag,
-			Usage:   "S3 url of where to upload SSH logs",
-			EnvVars: []string{"S3_URL"},
 			Hidden:  true,
 		}),
 	}
