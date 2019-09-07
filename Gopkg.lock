@@ -89,14 +89,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:c013ffc6e15f9f898078f9d38441c68b228aa7b899659452170250ccb27f5f1e"
-  name = "github.com/elgs/gosqljson"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "027aa4915315a0b2825c0f025cea347829b974fa"
-
-[[projects]]
   digest = "1:d4268b2a09b1f736633577c4ac93f2a5356c73742fff5344e2451aeec60a7ad0"
   name = "github.com/equinox-io/equinox"
   packages = [
@@ -164,14 +156,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
-  name = "github.com/gorilla/mux"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
-  version = "v1.7.1"
-
-[[projects]]
   digest = "1:43dd08a10854b2056e615d1b1d22ac94559d822e1f8b6fcc92c1a1057e85188e"
   name = "github.com/gorilla/websocket"
   packages = ["."]
@@ -194,18 +178,6 @@
   pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
-
-[[projects]]
-  digest = "1:bc1c0be40c67b6b4aee09d7508d5a2a52c1c116b1fa43806dad2b0d6b4d4003b"
-  name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid",
-    "scram",
-  ]
-  pruneopts = "UT"
-  revision = "51e2106eed1cea199c802d2a49e91e2491b02056"
-  version = "v1.1.0"
 
 [[projects]]
   digest = "1:2fa7b0155cd54479a755c629de26f888a918e13f8857a2c442205d825368e084"
@@ -550,15 +522,12 @@
     "github.com/coredns/coredns/plugin/pkg/rcode",
     "github.com/coredns/coredns/request",
     "github.com/coreos/go-systemd/daemon",
-    "github.com/elgs/gosqljson",
     "github.com/equinox-io/equinox",
     "github.com/facebookgo/grace/gracenet",
     "github.com/getsentry/raven-go",
     "github.com/golang-collections/collections/queue",
     "github.com/google/uuid",
-    "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
-    "github.com/lib/pq",
     "github.com/mattn/go-colorable",
     "github.com/miekg/dns",
     "github.com/mitchellh/go-homedir",

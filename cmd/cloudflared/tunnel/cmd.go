@@ -9,13 +9,11 @@ import (
 	"os"
 	"runtime/trace"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/config"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
-	"github.com/cloudflare/cloudflared/cmd/sqlgateway"
 	"github.com/cloudflare/cloudflared/connection"
 	"github.com/cloudflare/cloudflared/hello"
 	"github.com/cloudflare/cloudflared/metrics"
@@ -32,7 +30,6 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/ssh/terminal"
 	"gopkg.in/urfave/cli.v2"
 	"gopkg.in/urfave/cli.v2/altsrc"
 )
@@ -98,43 +95,6 @@ func Commands() []*cli.Command {
 			},
 			ArgsUsage: " ", // can't be the empty string or we get the default output
 			Hidden:    false,
-		},
-		{
-			Name: "db",
-			Action: func(c *cli.Context) error {
-				tags := make(map[string]string)
-				tags["hostname"] = c.String("hostname")
-				raven.SetTagsContext(tags)
-
-				fmt.Printf("\nSQL Database Password: ")
-				pass, err := terminal.ReadPassword(int(syscall.Stdin))
-				if err != nil {
-					logger.Error(err)
-				}
-
-				go sqlgateway.StartProxy(c, logger, string(pass))
-
-				raven.CapturePanic(func() { err = tunnel(c) }, nil)
-				if err != nil {
-					raven.CaptureError(err, nil)
-				}
-				return err
-			},
-			Before: Before,
-			Usage:  "SQL Gateway is an SQL over HTTP reverse proxy",
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:  "db",
-					Value: true,
-					Usage: "Enable the SQL Gateway Proxy",
-				},
-				&cli.StringFlag{
-					Name:  "address",
-					Value: "",
-					Usage: "Database connection string: db://user:pass",
-				},
-			},
-			Hidden: true,
 		},
 	}
 
