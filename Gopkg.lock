@@ -40,39 +40,6 @@
   revision = "333127dbecfcc23a8db7d9a4f52785d23aff44a1"
 
 [[projects]]
-  digest = "1:3f9506ee991cdee1f05bf0cd3e34b5cd922dc00d6a950fb4beb4e07ab1c4d3d1"
-  name = "github.com/coredns/coredns"
-  packages = [
-    "core/dnsserver",
-    "coremain",
-    "pb",
-    "plugin",
-    "plugin/cache",
-    "plugin/cache/freq",
-    "plugin/etcd/msg",
-    "plugin/metrics",
-    "plugin/metrics/vars",
-    "plugin/pkg/cache",
-    "plugin/pkg/dnstest",
-    "plugin/pkg/dnsutil",
-    "plugin/pkg/doh",
-    "plugin/pkg/edns",
-    "plugin/pkg/fuzz",
-    "plugin/pkg/log",
-    "plugin/pkg/nonwriter",
-    "plugin/pkg/rcode",
-    "plugin/pkg/response",
-    "plugin/pkg/trace",
-    "plugin/pkg/uniq",
-    "plugin/pkg/watch",
-    "plugin/test",
-    "request",
-  ]
-  pruneopts = "UT"
-  revision = "2e322f6e8a54f18c6aef9c25a7c432c291a3d9f7"
-  version = "v1.2.0"
-
-[[projects]]
   digest = "1:1da3a221f0bc090792d3a2a080ff09008427c0e0f0533a4ed6abd8994421da73"
   name = "github.com/coreos/go-systemd"
   packages = ["daemon"]
@@ -111,14 +78,6 @@
   revision = "75cf19382434e82df4dd84953f566b8ad23d6e9e"
 
 [[projects]]
-  branch = "master"
-  digest = "1:50a46ab1d5edbbdd55125b4d37f1bf503d0807c26461f9ad7b358d6006641d09"
-  name = "github.com/flynn/go-shlex"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3f9db97f856818214da2e1057f8ad84803971cff"
-
-[[projects]]
   digest = "1:d4623fc7bf7e281d9107367cc4a9e76ed3e86b1eec1a4e30630c870bef1fedd0"
   name = "github.com/getsentry/raven-go"
   packages = ["."]
@@ -134,15 +93,9 @@
   revision = "604e922904d35e97f98a774db7881f049cd8d970"
 
 [[projects]]
-  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
+  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
   name = "github.com/golang/protobuf"
-  packages = [
-    "proto",
-    "ptypes",
-    "ptypes/any",
-    "ptypes/duration",
-    "ptypes/timestamp",
-  ]
+  packages = ["proto"]
   pruneopts = "UT"
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
   version = "v1.3.1"
@@ -162,14 +115,6 @@
   pruneopts = "UT"
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
   version = "v1.2.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1a1206efd03a54d336dce7bb8719e74f2f8932f661cb9f57d5813a1d99c083d8"
-  name = "github.com/grpc-ecosystem/grpc-opentracing"
-  packages = ["go/otgrpc"]
-  pruneopts = "UT"
-  revision = "8e809c8a86450a29b90dcc9efbf062d0fe6d9746"
 
 [[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
@@ -204,25 +149,6 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:75fa16a231ef40da3e462d651c20b9df20bde0777bdc1ac0982242c79057ee71"
-  name = "github.com/mholt/caddy"
-  packages = [
-    ".",
-    "caddyfile",
-    "telemetry",
-  ]
-  pruneopts = "UT"
-  revision = "d3b731e9255b72d4571a5aac125634cf1b6031dc"
-
-[[projects]]
-  digest = "1:2b4b4b2e5544c2a11a486c1b631357aa2ddf766e50c1b2483cf809da2c511234"
-  name = "github.com/miekg/dns"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "73601d4aed9d844322611759d7f3619110b7c88e"
-  version = "v1.1.8"
-
-[[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -237,18 +163,6 @@
   pruneopts = "UT"
   revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
   version = "v1.1.2"
-
-[[projects]]
-  digest = "1:11e62d6050198055e6cd87ed57e5d8c669e84f839c16e16f192374d913d1a70d"
-  name = "github.com/opentracing/opentracing-go"
-  packages = [
-    ".",
-    "ext",
-    "log",
-  ]
-  pruneopts = "UT"
-  revision = "659c90643e714681897ec2521c60567dd21da733"
-  version = "v1.1.0"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
@@ -331,12 +245,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9afbc3e330bd691e0eb0e704d05cc182b5c62ea71c5691c99fa5e82f06b628b6"
+  digest = "1:0bd5841d796ee55bb7d9e63c1711a14e90a6e0099d6e528964b7cc6eb57f709b"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
-    "ed25519",
-    "ed25519/internal/edwards25519",
     "internal/subtle",
     "nacl/box",
     "nacl/secretbox",
@@ -349,20 +261,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:52d140f7ab52e491cc1cbc93e6637aa5e9a7f3beae7545d675b02e52ca9d7290"
+  digest = "1:aaf2d36acc834ff8c51ec087c17add7e94574d400c7836132c668ddc398bdad2"
   name = "golang.org/x/net"
   packages = [
-    "bpf",
     "context",
     "http/httpguts",
     "http2",
     "http2/hpack",
     "idna",
-    "internal/iana",
-    "internal/socket",
     "internal/timeseries",
-    "ipv4",
-    "ipv6",
     "trace",
     "websocket",
   ]
@@ -416,55 +323,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:c3076e7defee87de1236f1814beb588f40a75544c60121e6eb38b3b3721783e2"
-  name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
-  pruneopts = "UT"
-  revision = "d1146b9035b912113a38af3b138eb2af567b2c67"
-
-[[projects]]
-  digest = "1:31d87f39886fb38a2b6c097ff3b9f985d6960772170d64a68246f7790e955746"
-  name = "google.golang.org/grpc"
-  packages = [
-    ".",
-    "balancer",
-    "balancer/base",
-    "balancer/roundrobin",
-    "binarylog/grpc_binarylog_v1",
-    "codes",
-    "connectivity",
-    "credentials",
-    "credentials/internal",
-    "encoding",
-    "encoding/proto",
-    "grpclog",
-    "internal",
-    "internal/backoff",
-    "internal/balancerload",
-    "internal/binarylog",
-    "internal/channelz",
-    "internal/envconfig",
-    "internal/grpcrand",
-    "internal/grpcsync",
-    "internal/syscall",
-    "internal/transport",
-    "keepalive",
-    "metadata",
-    "naming",
-    "peer",
-    "resolver",
-    "resolver/dns",
-    "resolver/passthrough",
-    "stats",
-    "status",
-    "tap",
-  ]
-  pruneopts = "UT"
-  revision = "236199dd5f8031d698fb64091194aecd1c3895b2"
-  version = "v1.20.0"
-
-[[projects]]
   branch = "altsrc-parse-durations"
   digest = "1:0370b1bceda03dbfade3abbde639a43f1113bab711ec760452e5c0dcc0c14787"
   name = "gopkg.in/urfave/cli.v2"
@@ -514,13 +372,6 @@
   input-imports = [
     "github.com/cloudflare/brotli-go",
     "github.com/cloudflare/golibs/lrucache",
-    "github.com/coredns/coredns/core/dnsserver",
-    "github.com/coredns/coredns/plugin",
-    "github.com/coredns/coredns/plugin/cache",
-    "github.com/coredns/coredns/plugin/metrics/vars",
-    "github.com/coredns/coredns/plugin/pkg/dnstest",
-    "github.com/coredns/coredns/plugin/pkg/rcode",
-    "github.com/coredns/coredns/request",
     "github.com/coreos/go-systemd/daemon",
     "github.com/equinox-io/equinox",
     "github.com/facebookgo/grace/gracenet",
@@ -529,7 +380,6 @@
     "github.com/google/uuid",
     "github.com/gorilla/websocket",
     "github.com/mattn/go-colorable",
-    "github.com/miekg/dns",
     "github.com/mitchellh/go-homedir",
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",

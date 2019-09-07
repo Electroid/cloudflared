@@ -21,7 +21,6 @@ import (
 	"github.com/cloudflare/cloudflared/signal"
 	"github.com/cloudflare/cloudflared/supervisor"
 	"github.com/cloudflare/cloudflared/tlsconfig"
-	"github.com/cloudflare/cloudflared/tunneldns"
 	"github.com/cloudflare/cloudflared/tunnelrpc/pogs"
 	"github.com/cloudflare/cloudflared/websocket"
 
@@ -62,39 +61,6 @@ func Commands() []*cli.Command {
 				},
 			},
 			Hidden: true,
-		},
-		{
-			Name:   "proxy-dns",
-			Action: tunneldns.Run,
-			Usage:  "Run a DNS over HTTPS proxy server.",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "metrics",
-					Value:   "localhost:",
-					Usage:   "Listen address for metrics reporting.",
-					EnvVars: []string{"TUNNEL_METRICS"},
-				},
-				&cli.StringFlag{
-					Name:    "address",
-					Usage:   "Listen address for the DNS over HTTPS proxy server.",
-					Value:   "localhost",
-					EnvVars: []string{"TUNNEL_DNS_ADDRESS"},
-				},
-				&cli.IntFlag{
-					Name:    "port",
-					Usage:   "Listen on given port for the DNS over HTTPS proxy server.",
-					Value:   53,
-					EnvVars: []string{"TUNNEL_DNS_PORT"},
-				},
-				&cli.StringSliceFlag{
-					Name:    "upstream",
-					Usage:   "Upstream endpoint URL, you can specify multiple endpoints for redundancy.",
-					Value:   cli.NewStringSlice("https://1.1.1.1/dns-query", "https://1.0.0.1/dns-query"),
-					EnvVars: []string{"TUNNEL_DNS_UPSTREAM"},
-				},
-			},
-			ArgsUsage: " ", // can't be the empty string or we get the default output
-			Hidden:    false,
 		},
 	}
 
@@ -151,7 +117,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 	listeners := gracenet.Net{}
 	errC := make(chan error)
 	connectedSignal := signal.New(make(chan struct{}))
-	dnsReadySignal := make(chan struct{})
 
 	if c.String("config") == "" {
 		logger.Warnf("Cannot determine default configuration path. No file %v in %v", config.DefaultConfigFiles, config.DefaultConfigDirs)
@@ -207,19 +172,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 	buildInfo.Log(logger)
 	logClientOptions(c)
 
-	if c.IsSet("proxy-dns") {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			errC <- runDNSProxyServer(c, dnsReadySignal, shutdownC)
-		}()
-	} else {
-		close(dnsReadySignal)
-	}
-
-	// Wait for proxy-dns to come up (if used)
-	<-dnsReadySignal
-
 	metricsListener, err := listeners.Listen("tcp", c.String("metrics"))
 	if err != nil {
 		logger.WithError(err).Error("Error opening metrics server listener")
@@ -253,7 +205,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 		return startDeclarativeTunnel(ctx, c, cloudflaredID, buildInfo, &listeners)
 	}
 
-	// update needs to be after DNS proxy is up to resolve equinox server address
 	if updater.IsAutoupdateEnabled(c) {
 		logger.Infof("Autoupdate frequency is set to %v", c.Duration("autoupdate-freq"))
 		wg.Add(1)
@@ -262,13 +213,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 			autoupdater := updater.NewAutoUpdater(c.Duration("autoupdate-freq"), &listeners)
 			errC <- autoupdater.Run(ctx)
 		}()
-	}
-
-	// Serve DNS proxy stand-alone if no hostname or tag or app is going to run
-	if dnsProxyStandAlone(c) {
-		connectedSignal.Notify()
-		// no grace period, handle SIGINT/SIGTERM immediately
-		return waitToShutdown(&wg, errC, shutdownC, graceShutdownC, 0)
 	}
 
 	if c.IsSet("hello-world") {
@@ -769,33 +713,6 @@ func tunnelFlags(shouldHide bool) []cli.Flag {
 			Usage:  "HTTP proxy timeout for closing an idle connection",
 			Value:  time.Second * 90,
 			Hidden: shouldHide,
-		}),
-		altsrc.NewBoolFlag(&cli.BoolFlag{
-			Name:    "proxy-dns",
-			Usage:   "Run a DNS over HTTPS proxy server.",
-			EnvVars: []string{"TUNNEL_DNS"},
-			Hidden:  shouldHide,
-		}),
-		altsrc.NewIntFlag(&cli.IntFlag{
-			Name:    "proxy-dns-port",
-			Value:   53,
-			Usage:   "Listen on given port for the DNS over HTTPS proxy server.",
-			EnvVars: []string{"TUNNEL_DNS_PORT"},
-			Hidden:  shouldHide,
-		}),
-		altsrc.NewStringFlag(&cli.StringFlag{
-			Name:    "proxy-dns-address",
-			Usage:   "Listen address for the DNS over HTTPS proxy server.",
-			Value:   "localhost",
-			EnvVars: []string{"TUNNEL_DNS_ADDRESS"},
-			Hidden:  shouldHide,
-		}),
-		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
-			Name:    "proxy-dns-upstream",
-			Usage:   "Upstream endpoint URL, you can specify multiple endpoints for redundancy.",
-			Value:   cli.NewStringSlice("https://1.1.1.1/dns-query", "https://1.0.0.1/dns-query"),
-			EnvVars: []string{"TUNNEL_DNS_UPSTREAM"},
-			Hidden:  shouldHide,
 		}),
 		altsrc.NewDurationFlag(&cli.DurationFlag{
 			Name:    "grace-period",
