@@ -11,7 +11,6 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
 	"github.com/cloudflare/cloudflared/connection"
 	"github.com/cloudflare/cloudflared/h2mux"
 	"github.com/cloudflare/cloudflared/streamhandler"
@@ -22,8 +21,6 @@ import (
 type Supervisor struct {
 	connManager         *connection.EdgeManager
 	streamHandler       *streamhandler.StreamHandler
-	autoupdater         *updater.AutoUpdater
-	supportAutoupdate   bool
 	newConfigChan       <-chan *pogs.ClientConfig
 	useConfigResultChan chan<- *pogs.UseConfigurationResult
 	state               *state
@@ -36,8 +33,6 @@ func NewSupervisor(
 	tlsConfig *tls.Config,
 	serviceDiscoverer connection.EdgeServiceDiscoverer,
 	cloudflaredConfig *connection.CloudflaredConfig,
-	autoupdater *updater.AutoUpdater,
-	supportAutoupdate bool,
 	logger *logrus.Logger,
 ) (*Supervisor, error) {
 	newConfigChan := make(chan *pogs.ClientConfig)
@@ -64,8 +59,6 @@ func NewSupervisor(
 		connManager: connection.NewEdgeManager(streamHandler, defaultEdgeMgrConfigurable, userCredential, tlsConfig,
 			serviceDiscoverer, cloudflaredConfig, logger),
 		streamHandler:       streamHandler,
-		autoupdater:         autoupdater,
-		supportAutoupdate:   supportAutoupdate,
 		newConfigChan:       newConfigChan,
 		useConfigResultChan: useConfigResultChan,
 		state:               newState(defaultClientConfig),
@@ -87,12 +80,6 @@ func (s *Supervisor) Run(ctx context.Context) error {
 	errGroup.Go(func() error {
 		return s.listenToShutdownSignal(groupCtx)
 	})
-
-	if s.supportAutoupdate {
-		errGroup.Go(func() error {
-			return s.autoupdater.Run(groupCtx)
-		})
-	}
 
 	err := errGroup.Wait()
 	s.logger.Warnf("Supervisor terminated, reason: %v", err)
@@ -144,10 +131,6 @@ func (s *Supervisor) notifySubsystemsNewConfig(newConfig *pogs.ClientConfig) *po
 	})
 	// Update streamHandler tunnelHostnameMapper mapping
 	failedConfigs := s.streamHandler.UpdateConfig(newConfig.ReverseProxyConfigs)
-
-	if s.supportAutoupdate {
-		s.autoupdater.Update(newConfig.SupervisorConfig.AutoUpdateFrequency)
-	}
 
 	return &pogs.UseConfigurationResult{
 		Success:       len(failedConfigs) == 0,

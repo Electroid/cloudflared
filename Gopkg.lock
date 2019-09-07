@@ -56,21 +56,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:d4268b2a09b1f736633577c4ac93f2a5356c73742fff5344e2451aeec60a7ad0"
-  name = "github.com/equinox-io/equinox"
-  packages = [
-    ".",
-    "internal/go-update",
-    "internal/go-update/internal/binarydist",
-    "internal/go-update/internal/osext",
-    "internal/osext",
-    "proto",
-  ]
-  pruneopts = "UT"
-  revision = "5205c98a6c11dc72747ce12fff6cd620a99fde05"
-  version = "v1.2.0"
-
-[[projects]]
   digest = "1:433763f10d88dba9b533a7ea2fe9f5ee11e57e00306eb97a1f6090fd978e8fa1"
   name = "github.com/facebookgo/grace"
   packages = ["gracenet"]
@@ -369,7 +354,6 @@
     "github.com/cloudflare/brotli-go",
     "github.com/cloudflare/golibs/lrucache",
     "github.com/coreos/go-systemd/daemon",
-    "github.com/equinox-io/equinox",
     "github.com/facebookgo/grace/gracenet",
     "github.com/getsentry/raven-go",
     "github.com/golang-collections/collections/queue",

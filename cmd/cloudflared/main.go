@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/tunnel"
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
 	"github.com/cloudflare/cloudflared/log"
 	"github.com/cloudflare/cloudflared/metrics"
 
@@ -82,17 +81,6 @@ func main() {
 
 func commands(version func(c *cli.Context)) []*cli.Command {
 	cmds := []*cli.Command{
-		{
-			Name:      "update",
-			Action:    updater.Update,
-			Usage:     "Update the agent if a new version exists",
-			ArgsUsage: " ",
-			Description: `Looks for a new version on the official download server.
-If a new version exists, updates the agent binary and quits.
-Otherwise, does nothing.
-
-To determine if an update happened in a script, check for error code 64.`,
-		},
 		{
 			Name: "version",
 			Action: func(c *cli.Context) (err error) {

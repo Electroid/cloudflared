@@ -13,7 +13,6 @@ import (
 
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/cmd/cloudflared/config"
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/updater"
 	"github.com/cloudflare/cloudflared/connection"
 	"github.com/cloudflare/cloudflared/hello"
 	"github.com/cloudflare/cloudflared/metrics"
@@ -205,16 +204,6 @@ func StartServer(c *cli.Context, version string, shutdownC, graceShutdownC chan 
 		return startDeclarativeTunnel(ctx, c, cloudflaredID, buildInfo, &listeners)
 	}
 
-	if updater.IsAutoupdateEnabled(c) {
-		logger.Infof("Autoupdate frequency is set to %v", c.Duration("autoupdate-freq"))
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			autoupdater := updater.NewAutoUpdater(c.Duration("autoupdate-freq"), &listeners)
-			errC <- autoupdater.Run(ctx)
-		}()
-	}
-
 	if c.IsSet("hello-world") {
 		logger.Infof("hello-world set")
 		helloListener, err := hello.CreateTLSListener("127.0.0.1:")
@@ -303,7 +292,7 @@ func startDeclarativeTunnel(ctx context.Context,
 	defaultClientConfig := &pogs.ClientConfig{
 		Version: pogs.InitVersion(),
 		SupervisorConfig: &pogs.SupervisorConfig{
-			AutoUpdateFrequency:    c.Duration("autoupdate-freq"),
+			AutoUpdateFrequency:    0,
 			MetricsUpdateFrequency: c.Duration("metrics-update-freq"),
 			GracePeriod:            c.Duration("grace-period"),
 		},
@@ -316,8 +305,6 @@ func startDeclarativeTunnel(ctx context.Context,
 		DoHProxyConfigs:     []*pogs.DoHProxyConfig{},
 		ReverseProxyConfigs: []*pogs.ReverseProxyConfig{reverseProxyConfig},
 	}
-
-	autoupdater := updater.NewAutoUpdater(defaultClientConfig.SupervisorConfig.AutoUpdateFrequency, listeners)
 
 	originCert, err := getOriginCert(c)
 	if err != nil {
@@ -360,7 +347,7 @@ func startDeclarativeTunnel(ctx context.Context,
 		return err
 	}
 	supervisor, err := supervisor.NewSupervisor(defaultClientConfig, originCert, toEdgeTLSConfig,
-		serviceDiscoverer, cloudflaredConfig, autoupdater, updater.SupportAutoUpdate(), logger)
+		serviceDiscoverer, cloudflaredConfig, logger)
 	if err != nil {
 		logger.WithError(err).Error("unable to create Supervisor")
 		return err
@@ -471,25 +458,6 @@ func tunnelFlags(shouldHide bool) []cli.Flag {
 			Value:  config.FindDefaultConfigPath(),
 			Hidden: shouldHide,
 		},
-		altsrc.NewDurationFlag(&cli.DurationFlag{
-			Name:   "autoupdate-freq",
-			Usage:  fmt.Sprintf("Autoupdate frequency. Default is %v.", updater.DefaultCheckUpdateFreq),
-			Value:  updater.DefaultCheckUpdateFreq,
-			Hidden: shouldHide,
-		}),
-		altsrc.NewBoolFlag(&cli.BoolFlag{
-			Name:    "no-autoupdate",
-			Usage:   "Disable periodic check for updates, restarting the server with the new version.",
-			EnvVars: []string{"NO_AUTOUPDATE"},
-			Value:   false,
-			Hidden:  shouldHide,
-		}),
-		altsrc.NewBoolFlag(&cli.BoolFlag{
-			Name:   "is-autoupdated",
-			Usage:  "Signal the new process that Argo Tunnel client has been autoupdated",
-			Value:  false,
-			Hidden: true,
-		}),
 		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
 			Name:    "edge",
 			Usage:   "Address of the Cloudflare tunnel server.",
