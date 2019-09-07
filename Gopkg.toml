@@ -65,10 +65,6 @@
   branch = "master"  # master required by github.com/miekg/dns
 
 [[constraint]]
-  name = "github.com/cloudflare/golibs"
-  revision = "333127dbecfcc23a8db7d9a4f52785d23aff44a1"
-
-[[constraint]]
   name = "github.com/google/uuid"
   version = "=1.1.1"
 

@@ -33,13 +33,6 @@
   revision = "18c9f6c67e3dfc12e0ddaca748d2887f97a7ac28"
 
 [[projects]]
-  digest = "1:6dbb2bbc7e6333e691c4d82fd86485f0695a35902fbb9b2df5f72e22ab0040f3"
-  name = "github.com/cloudflare/golibs"
-  packages = ["lrucache"]
-  pruneopts = "UT"
-  revision = "333127dbecfcc23a8db7d9a4f52785d23aff44a1"
-
-[[projects]]
   digest = "1:1da3a221f0bc090792d3a2a080ff09008427c0e0f0533a4ed6abd8994421da73"
   name = "github.com/coreos/go-systemd"
   packages = ["daemon"]
@@ -352,7 +345,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/cloudflare/brotli-go",
-    "github.com/cloudflare/golibs/lrucache",
     "github.com/coreos/go-systemd/daemon",
     "github.com/facebookgo/grace/gracenet",
     "github.com/getsentry/raven-go",

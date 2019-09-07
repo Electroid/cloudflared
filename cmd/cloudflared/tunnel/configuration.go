@@ -254,7 +254,6 @@ func prepareTunnelConfig(
 		HeartbeatInterval:    c.Duration("heartbeat-interval"),
 		Hostname:             hostname,
 		HTTPHostHeader:       c.String("http-host-header"),
-		IncidentLookup:       origin.NewIncidentLookup(),
 		IsAutoupdated:        c.Bool("is-autoupdated"),
 		IsFreeTunnel:         isFreeTunnel,
 		LBPool:               c.String("lb-pool"),
