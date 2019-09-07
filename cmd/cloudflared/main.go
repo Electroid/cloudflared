@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -76,7 +77,7 @@ func main() {
 	app.Commands = commands(cli.ShowVersion)
 
 	tunnel.Init(Version, shutdownC, graceShutdownC) // we need this to support the tunnel sub command...
-	runApp(app, shutdownC, graceShutdownC)
+	app.Run(os.Args)
 }
 
 func commands(version func(c *cli.Context)) []*cli.Command {

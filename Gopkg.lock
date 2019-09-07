@@ -285,16 +285,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:77751d02e939d7078faedaeec10c09af575a09c528d84d18f2cb45a84bd1889a"
+  digest = "1:7d66cc475c1a5fdde28caa9d9cd08a0b9baf6c9f5eb49eec6963a77174893c7d"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
     "unix",
     "windows",
-    "windows/registry",
-    "windows/svc",
-    "windows/svc/eventlog",
-    "windows/svc/mgr",
   ]
   pruneopts = "UT"
   revision = "12500544f89f9420afe9529ba8940bf72d294972"
@@ -397,10 +393,6 @@
     "golang.org/x/net/trace",
     "golang.org/x/net/websocket",
     "golang.org/x/sync/errgroup",
-    "golang.org/x/sys/windows",
-    "golang.org/x/sys/windows/svc",
-    "golang.org/x/sys/windows/svc/eventlog",
-    "golang.org/x/sys/windows/svc/mgr",
     "gopkg.in/urfave/cli.v2",
     "gopkg.in/urfave/cli.v2/altsrc",
     "zombiezen.com/go/capnproto2",
