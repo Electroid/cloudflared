@@ -132,7 +132,7 @@ func TestTunnelHostnameMapper_ToAdd(t *testing.T) {
 			args:      args{newConfigs: []*pogs.ReverseProxyConfig{sampleConfig2()}},
 			wantToAdd: []*pogs.ReverseProxyConfig{sampleConfig2()},
 			fields: fields{tunnelHostnameToOrigin: map[h2mux.TunnelHostname]originservice.OriginService{
-				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HelloWorldService{},
+				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HTTPService{},
 			}},
 		},
 	}
@@ -168,14 +168,14 @@ func TestTunnelHostnameMapper_ToRemove(t *testing.T) {
 			name:         "Mapper={x}, NewConfig={}, toRemove={x}",
 			wantToRemove: []h2mux.TunnelHostname{sampleConfig1().TunnelHostname},
 			fields: fields{tunnelHostnameToOrigin: map[h2mux.TunnelHostname]originservice.OriginService{
-				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HelloWorldService{},
+				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HTTPService{},
 			}},
 		},
 		{
 			name: "Mapper={x}, NewConfig={x}, toRemove={}",
 			args: args{newConfigs: []*pogs.ReverseProxyConfig{sampleConfig1()}},
 			fields: fields{tunnelHostnameToOrigin: map[h2mux.TunnelHostname]originservice.OriginService{
-				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HelloWorldService{},
+				h2mux.TunnelHostname(sampleConfig1().TunnelHostname): &originservice.HTTPService{},
 			}},
 		},
 	}
@@ -194,7 +194,7 @@ func TestTunnelHostnameMapper_ToRemove(t *testing.T) {
 func sampleConfig1() *pogs.ReverseProxyConfig {
 	return &pogs.ReverseProxyConfig{
 		TunnelHostname:          "mock.example.com",
-		OriginConfigJSONHandler: &pogs.OriginConfigJSONHandler{OriginConfig: &pogs.HelloWorldOriginConfig{}},
+		OriginConfigJSONHandler: &pogs.OriginConfigJSONHandler{OriginConfig: &pogs.HTTPOriginConfig{}},
 		Retries:                 18,
 		ConnectionTimeout:       5 * time.Second,
 		CompressionQuality:      3,
@@ -204,7 +204,7 @@ func sampleConfig1() *pogs.ReverseProxyConfig {
 func sampleConfig2() *pogs.ReverseProxyConfig {
 	return &pogs.ReverseProxyConfig{
 		TunnelHostname:          "mock2.example.com",
-		OriginConfigJSONHandler: &pogs.OriginConfigJSONHandler{OriginConfig: &pogs.HelloWorldOriginConfig{}},
+		OriginConfigJSONHandler: &pogs.OriginConfigJSONHandler{OriginConfig: &pogs.HTTPOriginConfig{}},
 		Retries:                 18,
 		ConnectionTimeout:       5 * time.Second,
 		CompressionQuality:      3,

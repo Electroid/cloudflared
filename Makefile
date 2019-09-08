@@ -29,7 +29,7 @@ clean:
 
 .PHONY: cloudflared
 cloudflared: tunnel-deps
-	go build -v $(VERSION_FLAGS) $(IMPORT_PATH)/cmd/cloudflared
+	go build -v $(VERSION_FLAGS) $(IMPORT_PATH)
 
 .PHONY: container
 container:

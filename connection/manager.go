@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
+	"github.com/cloudflare/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/h2mux"
 	"github.com/cloudflare/cloudflared/tunnelrpc/pogs"
 	"github.com/google/uuid"

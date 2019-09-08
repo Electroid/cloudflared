@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
+	"github.com/cloudflare/cloudflared/buildinfo"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/cloudflare/cloudflared/h2mux"

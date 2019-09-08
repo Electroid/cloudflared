@@ -137,7 +137,7 @@ func StartProxyServer(logger *logrus.Logger, listener net.Listener, remote strin
 		defer stream.Close()
 
 		if !websocket.IsWebSocketUpgrade(r) {
-			w.Write(nonWebSocketRequestPage())
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		conn, err := upgrader.Upgrade(w, r, nil)

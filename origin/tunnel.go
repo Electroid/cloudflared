@@ -14,20 +14,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudflare/cloudflared/cmd/cloudflared/buildinfo"
+	"github.com/cloudflare/cloudflared/buildinfo"
 	"github.com/cloudflare/cloudflared/h2mux"
 	"github.com/cloudflare/cloudflared/signal"
 	"github.com/cloudflare/cloudflared/streamhandler"
 	"github.com/cloudflare/cloudflared/tunnelrpc"
 	tunnelpogs "github.com/cloudflare/cloudflared/tunnelrpc/pogs"
-	"github.com/cloudflare/cloudflared/validation"
 	"github.com/cloudflare/cloudflared/websocket"
 
+	"github.com/cloudflare/backoff"
 	raven "github.com/getsentry/raven-go"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	_ "github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	rpc "zombiezen.com/go/capnproto2/rpc"
@@ -154,7 +153,7 @@ func ServeTunnelLoop(ctx context.Context,
 	logger := config.Logger
 	config.Metrics.incrementHaConnections()
 	defer config.Metrics.decrementHaConnections()
-	backoff := BackoffHandler{MaxRetries: config.Retries}
+	timer := backoff.New(0, time.Duration(config.Retries))
 	connectedFuse := h2mux.NewBooleanFuse()
 	go func() {
 		if connectedFuse.Await() {
@@ -164,13 +163,12 @@ func ServeTunnelLoop(ctx context.Context,
 	// Ensure the above goroutine will terminate if we return without connecting
 	defer connectedFuse.Fuse(false)
 	for {
-		err, recoverable := ServeTunnel(ctx, config, addr, connectionID, connectedFuse, &backoff, u)
+		err, recoverable := ServeTunnel(ctx, config, addr, connectionID, connectedFuse, timer, u)
 		if recoverable {
-			if duration, ok := backoff.GetBackoffDuration(ctx); ok {
-				logger.Infof("Retrying in %s seconds", duration)
-				backoff.Backoff(ctx)
-				continue
-			}
+			duration := timer.Duration()
+			logger.Infof("Retrying in %s seconds", duration)
+			<-time.After(duration)
+			continue
 		}
 		return err
 	}
@@ -182,7 +180,7 @@ func ServeTunnel(
 	addr *net.TCPAddr,
 	connectionID uint8,
 	connectedFuse *h2mux.BooleanFuse,
-	backoff *BackoffHandler,
+	timer *backoff.Backoff,
 	u uuid.UUID,
 ) (err error, recoverable bool) {
 	// Treat panics as recoverable errors
@@ -226,7 +224,7 @@ func ServeTunnel(
 		err := RegisterTunnel(serveCtx, handler.muxer, config, connectionID, originLocalIP, u)
 		if err == nil {
 			connectedFuse.Fuse(true)
-			backoff.SetGracePeriod()
+			timer.Reset()
 		}
 		return err
 	})
@@ -463,12 +461,8 @@ func NewTunnelHandler(ctx context.Context,
 	addr string,
 	connectionID uint8,
 ) (*TunnelHandler, string, error) {
-	originURL, err := validation.ValidateUrl(config.OriginUrl)
-	if err != nil {
-		return nil, "", fmt.Errorf("unable to parse origin URL %#v", originURL)
-	}
 	h := &TunnelHandler{
-		originUrl:         originURL,
+		originUrl:         config.OriginUrl,
 		httpHostHeader:    config.HTTPHostHeader,
 		httpClient:        config.HTTPTransport,
 		tlsConfig:         config.ClientTlsConfig,

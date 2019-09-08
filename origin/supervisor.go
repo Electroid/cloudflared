@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/cloudflare/backoff"
 	"github.com/cloudflare/cloudflared/connection"
 	"github.com/cloudflare/cloudflared/signal"
 
@@ -65,8 +66,7 @@ func (s *Supervisor) Run(ctx context.Context, connectedSignal *signal.Signal, u 
 		return err
 	}
 	var tunnelsWaiting []int
-	backoff := BackoffHandler{MaxRetries: s.config.Retries, BaseTime: tunnelRetryDuration, RetryForever: true}
-	var backoffTimer <-chan time.Time
+	timer := backoff.New(time.Duration(s.config.Retries)*tunnelRetryDuration, tunnelRetryDuration)
 	tunnelsActive := s.config.HAConnections
 
 	for {
@@ -87,10 +87,6 @@ func (s *Supervisor) Run(ctx context.Context, connectedSignal *signal.Signal, u 
 				tunnelsWaiting = append(tunnelsWaiting, tunnelError.index)
 				s.waitForNextTunnel(tunnelError.index)
 
-				if backoffTimer == nil {
-					backoffTimer = backoff.BackoffTimer()
-				}
-
 				// If the error is a dial error, the problem is likely to be network related
 				// try another addr before refreshing since we are likely to get back the
 				// same IPs in the same order. Same problem with duplicate connection error.
@@ -101,8 +97,7 @@ func (s *Supervisor) Run(ctx context.Context, connectedSignal *signal.Signal, u 
 				}
 			}
 		// Backoff was set and its timer expired
-		case <-backoffTimer:
-			backoffTimer = nil
+		case <-time.After(timer.Duration()):
 			for _, index := range tunnelsWaiting {
 				go s.startTunnel(ctx, index, s.newConnectedTunnelSignal(index), u)
 			}
@@ -112,7 +107,7 @@ func (s *Supervisor) Run(ctx context.Context, connectedSignal *signal.Signal, u 
 		case <-s.nextConnectedSignal:
 			if !s.waitForNextTunnel(s.nextConnectedIndex) && len(tunnelsWaiting) == 0 {
 				// No more tunnels outstanding, clear backoff timer
-				backoff.SetGracePeriod()
+				timer.Reset()
 			}
 		// DNS resolution returned
 		case result := <-s.resolverC:
