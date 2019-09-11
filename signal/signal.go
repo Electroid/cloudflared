@@ -1,78 +1,33 @@
 package signal
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"sync"
 )
 
-// waitForSignal notifies all routines to shutdownC immediately by closing the
-// shutdownC when one of the routines in main exits, or when this process receives
-// SIGTERM/SIGINT
-func waitForSignal(errC chan error, shutdownC chan struct{}) error {
-	signals := make(chan os.Signal, 10)
-	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
-	defer signal.Stop(signals)
-
-	select {
-	case err := <-errC:
-		close(shutdownC)
-		return err
-	case <-signals:
-		close(shutdownC)
-	case <-shutdownC:
-	}
-	return nil
+// Signal lets goroutines signal that some event has occurred. Other goroutines can wait for the signal.
+type Signal struct {
+	ch   chan struct{}
+	once sync.Once
 }
 
-// waitForSignalWithGraceShutdown notifies all routines to shutdown immediately
-// by closing the shutdownC when one of the routines in main exits.
-// When this process recieves SIGTERM/SIGINT, it closes the graceShutdownC to
-// notify certain routines to start graceful shutdown. When grace period is over,
-// or when some routine exits, it notifies the rest of the routines to shutdown
-// immediately by closing shutdownC.
-// In the case of handling commands from Windows Service Manager, closing graceShutdownC
-// initiate graceful shutdown.
-func waitForSignalWithGraceShutdown(errC chan error,
-	shutdownC, graceShutdownC chan struct{},
-	gracePeriod time.Duration,
-) error {
-	signals := make(chan os.Signal, 10)
-	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
-	defer signal.Stop(signals)
-
-	select {
-	case err := <-errC:
-		close(graceShutdownC)
-		close(shutdownC)
-		return err
-	case <-signals:
-		close(graceShutdownC)
-		waitForGracePeriod(signals, errC, shutdownC, gracePeriod)
-	case <-graceShutdownC:
-		waitForGracePeriod(signals, errC, shutdownC, gracePeriod)
-	case <-shutdownC:
-		close(graceShutdownC)
+// New wraps a channel and turns it into a signal for a one-time event.
+func New(ch chan struct{}) *Signal {
+	return &Signal{
+		ch:   ch,
+		once: sync.Once{},
 	}
-
-	return nil
 }
 
-func waitForGracePeriod(signals chan os.Signal,
-	errC chan error,
-	shutdownC chan struct{},
-	gracePeriod time.Duration,
-) {
-	// Unregister signal handler early, so the client can send a second SIGTERM/SIGINT
-	// to force shutdown cloudflared
-	signal.Stop(signals)
-	graceTimerTick := time.Tick(gracePeriod)
-	// send close signal via shutdownC when grace period expires or when an
-	// error is encountered.
-	select {
-	case <-graceTimerTick:
-	case <-errC:
-	}
-	close(shutdownC)
+// Notify alerts any goroutines waiting on this signal that the event has occurred.
+// After the first call to Notify(), future calls are no-op.
+func (s *Signal) Notify() {
+	s.once.Do(func() {
+		close(s.ch)
+	})
+}
+
+// Wait returns a channel which will be written to when Notify() is called for the first time.
+// This channel will never be written to a second time.
+func (s *Signal) Wait() <-chan struct{} {
+	return s.ch
 }
