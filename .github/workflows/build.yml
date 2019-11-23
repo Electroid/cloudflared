@@ -13,12 +13,13 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
+      - name: Prepare
+        run: echo "::add-path::$GOPATH/bin" && go get github.com/BurntSushi/go-sumtype
+        env:
+          GO111MODULE: off
       - name: Checkout
         uses: actions/checkout@v1
       - name: Build
         run: make cloudflared
       - name: Test
-        run: go get github.com/BurntSushi/go-sumtype && make test
-        env:
-          GO111MODULE: off
-          PATH: $PATH:$GOPATH/bin
+        run: make test
