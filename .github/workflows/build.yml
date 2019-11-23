@@ -14,7 +14,7 @@ jobs:
         with:
           go-version: 1.13
       - name: Prepare
-        run: echo "::add-path::$GOPATH/bin" && go get github.com/BurntSushi/go-sumtype
+        run: go get github.com/BurntSushi/go-sumtype && echo "::add-path::$GOPATH/bin"
         env:
           GO111MODULE: off
       - name: Checkout
