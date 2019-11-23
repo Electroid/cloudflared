@@ -16,6 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
       - name: Prepare
-        run: go get github.com/BurntSushi/go-sumtype
+        run: GO111MODULE=off go get github.com/BurntSushi/go-sumtype
       - name: Build
-        run: make test
+        run: make
