@@ -1,10 +1,13 @@
 VERSION       := $(shell git describe --tags --always --dirty="-dev")
 DATE          := $(shell date -u '+%Y-%m-%d-%H%M UTC')
-VERSION_FLAGS := -ldflags='-X "main.Version=$(VERSION)" -X "main.BuildTime=$(DATE)"'
+LD_FLAGS      := -X "main.Version=$(VERSION)" -X "main.BuildTime=$(DATE)"
 
 IMPORT_PATH   := github.com/cloudflare/cloudflared
 PACKAGE_DIR   := $(CURDIR)/packaging
 INSTALL_BINDIR := usr/local/bin
+
+DOCKER_PLATFORM := linux/amd64
+DOCKER_CLI_EXPERIMENTAL := enabled
 
 EQUINOX_FLAGS = --version="$(VERSION)" \
 				 --platforms="$(EQUINOX_BUILD_PLATFORMS)" \
@@ -20,6 +23,10 @@ ifeq ($(GOARCH),)
 	GOARCH := amd64
 endif
 
+ifneq ($(DEBUG), true)
+	LD_FLAGS += -w -s
+endif
+
 .PHONY: all
 all: cloudflared test
 
@@ -29,15 +36,20 @@ clean:
 
 .PHONY: cloudflared
 cloudflared: tunnel-deps
-	go build -v -mod=vendor $(VERSION_FLAGS) $(IMPORT_PATH)/cmd/cloudflared
+	go build -v -mod=vendor -ldflags='$(LD_FLAGS)' $(IMPORT_PATH)/cmd/cloudflared
 
 .PHONY: container
 container:
-	docker build -t cloudflare/cloudflared:"$(VERSION)" .
+	docker buildx build \
+		--build-arg=VERSION="$(VERSION)" \
+		--build-arg=DATE="$(DATE)" \
+		--tag=cloudflare/cloudflared:"$(VERSION)" \
+		--platform=$(DOCKER_PLATFORM) \
+		.
 
 .PHONY: test
 test: vet
-	go test -v -mod=vendor -race $(VERSION_FLAGS) ./...
+	go test -v -mod=vendor -race -ldflags='$(LD_FLAGS)' ./...
 
 .PHONY: test-ssh-server
 test-ssh-server:
@@ -66,7 +78,7 @@ homebrew-release: homebrew-upload
 
 .PHONY: release
 release: bin/equinox
-	bin/equinox release $(EQUINOX_FLAGS) -- $(VERSION_FLAGS) $(IMPORT_PATH)/cmd/cloudflared
+	bin/equinox release $(EQUINOX_FLAGS) -- -ldflags='$(LD_FLAGS)' $(IMPORT_PATH)/cmd/cloudflared
 
 bin/equinox:
 	mkdir -p bin
