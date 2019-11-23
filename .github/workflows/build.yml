@@ -16,14 +16,14 @@ jobs:
       - name: Prepare
         env:
           GOPATH: ${{runner.workspace}}
-          PATH: $PATH:$GOPATH/bin
           GO111MODULE: "off"
-        run: go get github.com/BurntSushi/go-sumtype
+        run: |
+          go get github.com/BurntSushi/go-sumtype
+          echo "::add_path::$GOPATH/bin"
       - name: Checkout
         uses: actions/checkout@v1
         env:
           GOPATH: ${{runner.workspace}}
-          PATH: $PATH:$GOPATH/bin
         with:
           path: ./src/github.com/${{github.repository}}
       - name: Build
@@ -31,5 +31,4 @@ jobs:
       - name: Test
         env:
           GOPATH: ${{runner.workspace}}
-          PATH: $PATH:$GOPATH/bin
         run: make test
