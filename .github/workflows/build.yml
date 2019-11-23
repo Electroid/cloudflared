@@ -19,12 +19,9 @@ jobs:
           GO111MODULE: "off"
         run: |
           go get github.com/BurntSushi/go-sumtype
-          echo "::set-env GOPATH=$GOPATH"
-          echo "::add_path::$GOPATH/bin"
+          echo "::add_path::$GITHUB_WORKSPACE/bin"
       - name: Checkout
         uses: actions/checkout@v1
-        with:
-          path: ./src/github.com/${{github.repository}}
       - name: Build
         run: make cloudflared
       - name: Test
