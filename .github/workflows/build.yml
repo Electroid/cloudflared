@@ -19,3 +19,5 @@ jobs:
         run: GO111MODULE=off go get github.com/BurntSushi/go-sumtype
       - name: Build
         run: make
+        env:
+          PATH: $PATH:$GOPATH
