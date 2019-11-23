@@ -21,4 +21,4 @@ jobs:
         run: go get github.com/BurntSushi/go-sumtype && make test
         env:
           GO111MODULE: off
-          PATH: $$PATH:$GOPATH
+          PATH: $PATH:$GOPATH/bin
