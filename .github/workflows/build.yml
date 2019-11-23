@@ -3,26 +3,33 @@ on: [push]
 jobs:
   build:
     name: Build
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest]
         #os: [macos-latest, windows-latest, ubuntu-latest]
-    env:
-      GOPATH: ${{runner.workspace}}
-      PATH: $PATH:$GOPATH/bin
     steps:
       - name: Setup
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
       - name: Prepare
-        run: GO111MODULE=off go get github.com/BurntSushi/go-sumtype
+        env:
+          GOPATH: ${{runner.workspace}}
+          PATH: $PATH:$GOPATH/bin
+          GO111MODULE: "off"
+        run: go get github.com/BurntSushi/go-sumtype
       - name: Checkout
         uses: actions/checkout@v1
+        env:
+          GOPATH: ${{runner.workspace}}
+          PATH: $PATH:$GOPATH/bin
         with:
           path: ./src/github.com/${{github.repository}}
       - name: Build
         run: make cloudflared
       - name: Test
+        env:
+          GOPATH: ${{runner.workspace}}
+          PATH: $PATH:$GOPATH/bin
         run: make test
