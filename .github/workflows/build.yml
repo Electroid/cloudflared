@@ -8,17 +8,20 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         #os: [macos-latest, windows-latest, ubuntu-latest]
+    env:
+      GOPATH: ${{runner.workspace}}
+      PATH: $PATH:$GOPATH/bin
     steps:
       - name: Setup
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
       - name: Prepare
-        run: go get github.com/BurntSushi/go-sumtype && echo "::add-path::$GOPATH/bin"
-        env:
-          GO111MODULE: off
+        run: GO111MODULE=off go get github.com/BurntSushi/go-sumtype
       - name: Checkout
         uses: actions/checkout@v1
+        with:
+          path: ./src/github.com/${{github.repository}}
       - name: Build
         run: make cloudflared
       - name: Test
