@@ -24,6 +24,7 @@ jobs:
       - name: Test
         run: |
           printenv
+          go-sumtype
       #- name: Test
       #  run: |
       #    printenv
