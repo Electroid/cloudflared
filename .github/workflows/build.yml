@@ -19,14 +19,17 @@ jobs:
           GO111MODULE: 'off'
         run: |
           go get github.com/BurntSushi/go-sumtype
+          ls $HOME/go
+          ls $HOME/go/src
+          ls $HOME/go/bin
           echo "::set_env name=GOPATH::$GOPATH"
           echo "::add_path::$GOPATH/bin"
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Test
-        run: |
-          printenv
-          make test
-        env:
-          GO111MODULE: 'on'
-          CGO_ENABLED: '0'
+      #- name: Test
+      #  run: |
+      #    printenv
+      #    make test
+      #  env:
+      #    GO111MODULE: 'on'
+      #    CGO_ENABLED: '0'
