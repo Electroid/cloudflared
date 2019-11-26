@@ -18,12 +18,11 @@ jobs:
           GO111MODULE: "off"
         run: |
           go get github.com/BurntSushi/go-sumtype
-          echo "::add_path::$GITHUB_WORKSPACE/bin"
+          echo "::add_path::$GOPATH/bin"
       - name: Checkout
         uses: actions/checkout@v1
       - name: Test
         run: make test
         env:
-          GOPATH: ${{runner.workspace}}
           GO111MODULE: 'on'
           CGO_ENABLED: '0'
