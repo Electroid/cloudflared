@@ -18,11 +18,12 @@ jobs:
           GO111MODULE: 'off'
         run: |
           go get github.com/BurntSushi/go-sumtype
-          ls $HOME/go
-          ls $HOME/go/src
-          ls $HOME/go/bin
+          echo "::add_path::$HOME/go/bin"
       - name: Checkout
         uses: actions/checkout@v1
+      - name: Test
+        run: |
+          printenv
       #- name: Test
       #  run: |
       #    printenv
