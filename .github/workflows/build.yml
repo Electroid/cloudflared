@@ -18,8 +18,19 @@ jobs:
           GO111MODULE: 'off'
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Test
-        run: PATH=$PATH:$HOME/go/bin make test
+      - name: Test Unix
+        if: matrix.os != 'windows-latest'
+        run: |
+          export PATH=$PATH:$HOME/go/bin
+          make test
+        env:
+          GO111MODULE: 'on'
+          CGO_ENABLED: '1'
+      - name: Test Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          set PATH=%PATH%;C:${HOME}\go\bin\
+          make test
         env:
           GO111MODULE: 'on'
           CGO_ENABLED: '1'
