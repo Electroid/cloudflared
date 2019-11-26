@@ -18,17 +18,17 @@ jobs:
           GO111MODULE: 'off'
         run: |
           go get github.com/BurntSushi/go-sumtype
-          echo "::add_path::$HOME/go/bin"
       - name: Checkout
         uses: actions/checkout@v1
+      - name: Cache  
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Test
-        run: |
-          printenv
-          PATH=$PATH:$HOME/go/bin go-sumtype
-      #- name: Test
-      #  run: |
-      #    printenv
-      #    make test
-      #  env:
-      #    GO111MODULE: 'on'
-      #    CGO_ENABLED: '0'
+        run: PATH=$PATH:$HOME/go/bin make test
+        env:
+          GO111MODULE: 'on'
+          CGO_ENABLED: '0'
