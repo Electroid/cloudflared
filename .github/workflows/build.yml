@@ -31,4 +31,4 @@ jobs:
         run: PATH=$PATH:$HOME/go/bin make test
         env:
           GO111MODULE: 'on'
-          CGO_ENABLED: '0'
+          CGO_ENABLED: '1'
