@@ -24,7 +24,7 @@ jobs:
       - name: Test
         run: |
           printenv
-          go-sumtype
+          PATH=$PATH:$HOME/go/bin go-sumtype
       #- name: Test
       #  run: |
       #    printenv
