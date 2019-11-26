@@ -15,14 +15,18 @@ jobs:
           go-version: 1.13
       - name: Prepare
         env:
-          GO111MODULE: "off"
+          GOPATH: ${{runner.workspace}}
+          GO111MODULE: 'off'
         run: |
           go get github.com/BurntSushi/go-sumtype
+          echo "::set_env name=GOPATH::$GOPATH"
           echo "::add_path::$GOPATH/bin"
       - name: Checkout
         uses: actions/checkout@v1
       - name: Test
-        run: make test
+        run: |
+          printenv
+          make test
         env:
           GO111MODULE: 'on'
           CGO_ENABLED: '0'
