@@ -1,9 +1,12 @@
+//+build !windows
+
 package sshserver
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestHasPort(t *testing.T) {

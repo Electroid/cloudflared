@@ -8,22 +8,22 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
-      - name: Setup Golang
+      - name: Setup golang
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-      - name: Fix GOPATH # https://github.com/actions/setup-go/issues/14
+      - name: Fix path # https://github.com/actions/setup-go/issues/14
         shell: bash
         run: |
           echo "##[set-env name=GOPATH;]$(dirname $GITHUB_WORKSPACE)"
           echo "##[add-path]$(dirname $GITHUB_WORKSPACE)/bin"
-      - name: Install go-sumtype
+      - name: Install helpers
         run: go get github.com/BurntSushi/go-sumtype
         env:
           GO111MODULE: 'off'
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v1
-      - name: Run Tests
+      - name: Run tests
         run: make test
         env:
           GO111MODULE: 'on'
